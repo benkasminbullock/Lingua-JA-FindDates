@@ -100,7 +100,7 @@ sub kanji2number
 	    }
 	}
         else {
-            # A kanji digit.
+            # $k is a kanji digit from 0 to 9, and $val is its value.
 	    $value += $val * $keta;
 	    $keta *= 10;
 	}
@@ -778,7 +778,17 @@ supplying a value C<make_date_interval> as a callback in L<subsjdate>.
 
 =head1 BUGS
 
+The following special cases are not covered.
+
 =over
+
+=item Doesn't do 元日 (I<ganjitsu>)
+
+This date (another way to write "1st January") is a little difficult,
+since the characters which make it up could also occur in other
+contexts, like 元日本軍 I<gennihongun>, "the former Japanese
+military". Correctly parsing it requires a linguistic analysis of the
+text, which this module isn't able to do.
 
 =item １０月第４月曜日
 
@@ -801,6 +811,12 @@ The module does not handle "土日祝日" (weekends and holidays).
 =item 年末年始
 
 The module does not handle "年末年始" (the new year period).
+
+=back
+
+In addition to these failings, the following problems exist:
+
+=over
 
 =item No sanity check of Japanese era dates
 
@@ -837,21 +853,13 @@ number 56902
 sending this routine a string which is pure ASCII doesn't make sense
 anyway, so don't worry too much about it.
 
-=item Doesn't do 元日 (I<ganjitsu>)
-
-This date (another way to write "1st January") is a little difficult,
-since the characters which make it up could also occur in other
-contexts, like 元日本軍 I<gennihongun>, "the former Japanese
-military". Correctly parsing it requires a linguistic analysis of the
-text, which this module isn't able to do.
-
 =back
 
 =cut
 
 =head1 EXPORTS
 
-This module exports one function, L<subsjdate>, on request.
+This module exports one function, L</subsjdate>, on request.
 
 =cut
 
