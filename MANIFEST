@@ -1,0 +1,8 @@
+Changes
+lib/Lingua/JA/FindDates.pm
+Makefile.PL
+MANIFEST
+META.yml
+README
+script/subsjdate
+t/Lingua-JA-FindDates.t
