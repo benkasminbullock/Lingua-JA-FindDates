@@ -72,12 +72,14 @@ sub kanji2number
     my @values;
     while (1) {
 	my $k = pop @kanjis;
-	return $value if !$k;
+	return $value if ! defined $k;
 	my $val = $kanjinums{$k};
-	if (!defined $val) {
+        # Make sure this kanji number is one we know how to handle.
+	if (! defined $val) {
 	    warn "can't cope with '$k' of input '$knum'";
 	    return 0;
 	}
+        # If the value of the individual kanji is more than 10.
 	if ($val >= 10) {
 	    $keta = $val;
 	    my $knext = pop @kanjis;
@@ -92,10 +94,13 @@ sub kanji2number
 	    if ($val_next > 10) {
 		push @kanjis, $knext;
 		$value += $val;
-	    } else {
+	    }
+            else {
 		$value += $val_next * $val;
 	    }
-	} else {
+	}
+        else {
+            # A kanji digit.
 	    $value += $val * $keta;
 	    $keta *= 10;
 	}

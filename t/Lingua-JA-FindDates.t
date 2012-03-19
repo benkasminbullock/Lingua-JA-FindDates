@@ -2,7 +2,7 @@
 use warnings;
 use strict;
 use utf8;
-use Test::More tests => 50;
+use Test::More tests => 51;
 
 BEGIN { use_ok('Lingua::JA::FindDates') };
 
@@ -159,3 +159,7 @@ ok (subsjdate ($date_with_linebreak) =~ /2009\nNovember 4/,
 # $Lingua::JA::FindDates::verbose = 1;
 #print subsjdate ('\'79年4月21日');
 ok (subsjdate ('\'79年4月21日') eq 'April 21, \'79', "Apostrophe dates");
+
+# Test for the "kanji zero".
+
+ok (subsjdate ('平成二〇年一二月二六日') eq 'December 26, 2008', "kanji zero handling");
