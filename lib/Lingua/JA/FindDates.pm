@@ -628,7 +628,7 @@ be inserted between individual Japanese characters, such as
 The input text must be marked as Unicode, in other words character
 data, not byte data.
 
-The module has been tested on several hundred of documents, and it
+The module has been tested on several hundreds of documents, and it
 should cope with all common Japanese dates. If you find that it cannot
 identify some kind of date within Japanese text, please report that as
 a bug.
@@ -664,7 +664,7 @@ following members:
     # my_replace ($my_data, $before, $after);
 
 If there is a replace value in the callbacks, subsjdate calls it as a
-subroutine with the data in C<<$callbacks->{data}>> and the before and
+subroutine with the data in C<< $callbacks->{data} >> and the before and
 after string, in other words the matched date and the string with
 which it is to be replaced.
 
@@ -727,8 +727,8 @@ date. C<make_date> is not exported.
 
 L<subsjdate>, given a date like 平成２０年７月３日（木） (Heisei year
 20, month 7, day 3, in other words "Thursday the third of July,
-2008"), passes C<make_date> a hash reference with values (year =>2008,
-month => 7, date => 3, wday => 4) for the year, month, date and day of
+2008"), passes C<make_date> a hash reference with values C<< year => 2008,
+month => 7, date => 3, wday => 4 >> for the year, month, date and day of
 the week. C<make_date> returns a string, 'Thursday, July 3, 2008'. If
 some fields of the date aren't defined, for example in the case of a
 date like ７月３日 (3rd July), the hash values for the keys of the
