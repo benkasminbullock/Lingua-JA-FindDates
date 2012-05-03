@@ -5,7 +5,7 @@ require Exporter;
 use AutoLoader qw(AUTOLOAD);
 our @ISA = qw(Exporter);
 @EXPORT_OK= qw/subsjdate/;
-our $VERSION = '0.013';
+our $VERSION = '0.014';
 use warnings;
 use strict;
 use Carp;
@@ -124,10 +124,11 @@ my $wyear = '('.$jdigit.'{4}|['.$kanjidigits.']?千['.$kanjidigits.']*|'.
     '[\']'.$jdigit.'{2}'.
     ')\s*年';
 
-# Japanese eras (Heisei, Showa, Taisho, Meiji). Japanese people
-# sometimes write these eras using the letters H, S, T, and M.
+# The recent era names (Heisei, Showa, Taisho, Meiji). These eras are
+# sometimes written using the letters H, S, T, and M.
 my $jera = '(H|Ｈ|平成|S|Ｓ|昭和|T|Ｔ|大正|M|Ｍ|明治)';
-# Map of Japanese eras to Western dates.
+
+# A map of Japanese eras to Western dates.
 my %jera2w = (
 H    => 1988,
 Ｈ   => 1988,
@@ -145,12 +146,15 @@ M    => 1869,
 
 # Japanese year, with era like "Heisei" at the beginning.
 my $jyear = $jera.'\h*('."$jdigit+|[$kanjidigits]+".'|元)\h*年';
-# Ten day periods (thirds of a month)
+
+# The "jun" or approximately ten day periods (thirds of a month)
 my %jun = qw/初 1 上 1 中 2 下 3/;
 my @jun2english = ('invalid', 'early ', 'mid-', 'late ');
+
 # Japanese days of the week, from Monday to Sunday.
 my $weekdays = '月火水木金土日';
 my @weekdays = split '',$weekdays;
+
 # Match a string for a weekday, like 月曜日 or (日)
 # The long part (?=\W) is to stop it from accidentally matching a
 # kanji which is part of a different word, like the following:
@@ -182,7 +186,7 @@ my $match_month_day_weekday = $match_month_day.'\h*'.$match_weekday;
 # Separators used in date strings
 # Microsoft Word uses Unicode 0xFF5E, the "fullwidth tilde", for nyoro symbol.
 my $separators = '\h*[〜−~]\h*';
-# 
+ 
 
 # =head2 Matching patterns
 
@@ -453,6 +457,7 @@ sub subsjdate
     if (! $text) {
         return $text;
     }
+    # Loop through all the possible regular expressions.
     for my $datere (@jdatere) {
 	my $regex = $$datere[0];
 	my @process = split (/(?=[a-z][12]?)/, $$datere[1]);
@@ -462,9 +467,10 @@ sub subsjdate
 	while ($text =~ /($regex)/g) {
 	    my $date1;
 	    my $date2;
+            # The matching string is in the following variable.
 	    my $orig = $1;
 #	    print "Keys are ",$$datere[1],"\n";
-	    my @matches = ($2,$3,$4,$5,$6,$7,$8,$9); # uh - oh. Be careful!
+	    my @matches = ($2,$3,$4,$5,$6,$7,$8,$9);
             if ($verbose) {
                 print "Found '$orig': " if $verbose;
             }
@@ -481,30 +487,41 @@ sub subsjdate
 #		print $argdo,"\n";
 		if ($argdo eq 'e') { # Era name in Japanese
 		    $date1->{year} = $jera2w{$arg};
-		} elsif ($argdo eq 'j') { # Japanese year
+		}
+                elsif ($argdo eq 'j') { # Japanese year
 		    $date1->{year} += $arg;
-		} elsif ($argdo eq 'y') {
+		}
+                elsif ($argdo eq 'y') {
 		    $date1->{year} = $arg;
-		} elsif ($argdo eq 'n') {
+		}
+                elsif ($argdo eq 'n') {
 		    $date1->{year} += $arg;
 		    $date1->{year} = "fiscal ".$date1->{year};
-		} elsif ($argdo eq 'm' || $argdo eq 'm1') {
+		}
+                elsif ($argdo eq 'm' || $argdo eq 'm1') {
 		    $date1->{month} = $arg;
-		} elsif ($argdo eq 'd' || $argdo eq 'd1') {
+		}
+                elsif ($argdo eq 'd' || $argdo eq 'd1') {
 		    $date1->{date} = $arg;
-		} elsif ($argdo eq 'm2') {
+		}
+                elsif ($argdo eq 'm2') {
 		    $date2->{month} = $arg;
-		} elsif ($argdo eq 'd2') {
+		}
+                elsif ($argdo eq 'd2') {
 		    $date2->{date} = $arg;
-		} elsif ($argdo eq 'w' || $argdo eq 'w1') {
+		}
+                elsif ($argdo eq 'w' || $argdo eq 'w1') {
 		    $date1->{wday} = $j2eweekday{$arg};
-		} elsif ($argdo eq 'w2') {
+		}
+                elsif ($argdo eq 'w2') {
 #		    print "W2\n";
 		    $date2->{wday} = $j2eweekday{$arg};
-		} elsif ($argdo eq 'z') {
+		}
+                elsif ($argdo eq 'z') {
 		    $date1->{jun} = $jun{$arg};
 #		    print "\n*Jun of $arg is ",$date1->{jun},"\n";
-		} elsif ($argdo eq 'x') {
+		}
+                elsif ($argdo eq 'x') {
                     if ($verbose) {
                         print "Dummy date '$orig'.\n" if $verbose;
                     }
@@ -514,18 +531,25 @@ sub subsjdate
 	    }
 	    my $edate;
 	    if ($date2) {
+                # Date interval
 		if ($callbacks &&
                     $callbacks->{make_date_interval}) {
-		    $edate = &{$callbacks->{make_date_interval}} ($date1, $date2);
+		    $edate = 
+                    &{$callbacks->{make_date_interval}} ($callbacks->{data},
+                                                         $orig,
+                                                         $date1, $date2);
 		}
                 else {
 		    $edate = make_date_interval ($date1, $date2);
 		}
 	    }
             else {
+                # Single date
 		if ($callbacks &&
                     $callbacks->{make_date}) {
-		    $edate = &{$callbacks->{make_date}}($date1);
+		    $edate = &{$callbacks->{make_date}}($callbacks->{data},
+                                                        $orig,
+                                                        $date1);
 		}
                 else {
 		    $edate = make_date ($date1);
@@ -534,8 +558,11 @@ sub subsjdate
             if ($verbose) {
                 print "-> '$edate'\n" if $verbose;
             }
+
+
 	    $text =~ s/\Q$orig\E/$edate/g;
-	    if ($callbacks->{replace}) {
+	    if ($callbacks &&
+                $callbacks->{replace}) {
 		&{$callbacks->{replace}}($callbacks->{data}, $orig, $edate);
 	    }
 	}

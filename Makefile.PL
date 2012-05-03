@@ -2,6 +2,12 @@ use strict;
 use warnings;
 use ExtUtils::MakeMaker;
 
+# Module requires Perl 5.10 or above.
+
+if ($] < 5.010) {
+    exit;
+}
+
 my $pm = 'lib/Lingua/JA/FindDates.pm';
 
 WriteMakefile (
