@@ -1,8 +1,13 @@
 Changes
 lib/Lingua/JA/FindDates.pm
+lib/Lingua/JA/FindDates.pod
 Makefile.PL
-MANIFEST
-META.yml
-README
+MANIFEST			This list of files
+MANIFEST.SKIP
+MYMETA.json
+MYMETA.yml
 script/subsjdate
 t/Lingua-JA-FindDates.t
+testing/test.pl
+testing/test2.pl
+testing/test3.pl
