@@ -4,18 +4,14 @@ use strict;
 use utf8;
 use Test::More tests => 51;
 
+my $builder = Test::More->builder;
+binmode $builder->output,         ":utf8";
+binmode $builder->failure_output, ":utf8";
+binmode $builder->todo_output,    ":utf8";
+
 BEGIN { use_ok('Lingua::JA::FindDates') };
 
 use Lingua::JA::FindDates qw/subsjdate/;
-
-#$JaDates::verbose = 1;
-
-# If you are on Cygwin on Japanese Windows, use the following:
-
-#binmode STDOUT,":encoding(cp932)";
-#binmode STDERR,":encoding(cp932)";
-binmode STDOUT,":utf8";
-binmode STDERR,":utf8";
 
 ok (Lingua::JA::FindDates::kanji2number ('3百三十五') == 0, 'bad kanji number failure test');
 ok (Lingua::JA::FindDates::kanji2number ('二百三十五') == 235, 'kanji number');
@@ -24,23 +20,24 @@ ok (Lingua::JA::FindDates::kanji2number ('二三五五') == 2355, 'kanji number'
 
 my @tests= qw/平成２０年７月３日（木） H二十年七月三日(木曜日) 二千八年7月三日(木曜)/;
 for my $d (@tests) {
-#    print subsjdate ($d);
+    note subsjdate ($d);
     ok (subsjdate ($d) eq 'Thursday, July 3, 2008', 
 	'year + month + day + weekday');
 }
 
 sub mymakedate
 {
-    my ($datehash) = @_;
+    my ($data, $original, $datehash) = @_;
+    print "KEYS: ",join (" ", keys %$datehash), "\n";
     my ($year, $month, $date, $wday, $jun) = 
 	@{$datehash}{qw/year month date wday jun/};
     return qw{Bad Mo Tu We Th Fr Sa Su}[$wday]." $year/$month/$date";
 }
 
 for my $d (@tests) {
-#    print subsjdate ($d);
-    ok (subsjdate ($d, {make_date => \&mymakedate})
-	eq 'Th 2008/7/3', 'makedate_callback');
+    note subsjdate ($d);
+    is (subsjdate ($d, {make_date => \&mymakedate}),
+	'Th 2008/7/3', 'test make_date callback with own function');
 }
 
 my @tests2= ('昭和 ４１年　３月１６日', 'Ｓ４１年三月十六日', '千九百六十六年3月16日');
@@ -115,19 +112,19 @@ my @tests_interval =
  '昭和41年3月1日〜4月12日',);
 
 for my $c (@tests_interval[0..1]) {
-    #print STDERR "Looking for $c\n";
-    #print STDERR $c, " ", subsjdate($c),"\n";
+    note "Looking for $c\n";
+    note $c, " ", subsjdate($c),"\n";
     ok (subsjdate($c) eq 'March 1-12, 1966', "two days interval");
 }
 for my $c (@tests_interval[2..3]) {
-    #print STDERR "Looking for $c\n";
-    #print STDERR $c, " ", subsjdate($c),"\n";
+    note "Looking for $c\n";
+    note $c, " ", subsjdate($c),"\n";
     ok (subsjdate($c) eq 'January-December 1966', "month-month interval");
 }
 
-for my $c (@tests_interval[4]) {
-    #print STDERR "Looking for $c\n";
-    #print STDERR $c, " ", subsjdate($c),"\n";
+for my $c ($tests_interval[4]) {
+    note "Looking for $c\n";
+    note $c, " ", subsjdate($c),"\n";
     ok (subsjdate($c) eq 'March 1-April 12, 1966', "two days interval");
 }
 # Test there is no weird match to a following word.

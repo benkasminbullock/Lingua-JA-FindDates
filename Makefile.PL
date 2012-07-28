@@ -8,12 +8,14 @@ if ($] < 5.010) {
     exit;
 }
 
-my $pm = 'lib/Lingua/JA/FindDates.pm';
+my $base = 'lib/Lingua/JA/FindDates';
+my $pm = "$base.pm";
+my $pod = "$base.pod";
 
 WriteMakefile (
     NAME => 'Lingua::JA::FindDates',
     VERSION_FROM => $pm,
-    ABSTRACT_FROM => $pm,
+    ABSTRACT_FROM => $pod,
     LICENSE => 'perl',
     AUTHOR => 'Ben Bullock <bkb@cpan.org>',
     EXE_FILES => [
