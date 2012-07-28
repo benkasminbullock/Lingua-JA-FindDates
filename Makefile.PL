@@ -8,6 +8,7 @@ if ($] < 5.010) {
     exit;
 }
 
+my $repo = 'https://github.com/benkasminbullock/Lingua--JA--FindDates';
 my $base = 'lib/Lingua/JA/FindDates';
 my $pm = "$base.pm";
 my $pod = "$base.pod";
@@ -21,4 +22,10 @@ WriteMakefile (
     EXE_FILES => [
         'script/subsjdate',
     ],
+    META_MERGE => {
+        resources => {
+            repository => $repo,
+            bugtracker => "$repo/issues",
+        },
+    },
 );
