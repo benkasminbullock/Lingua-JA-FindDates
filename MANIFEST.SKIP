@@ -1,0 +1,11 @@
+build\.pl
+Makefile$
+pm_to_blib
+Lingua-JA-FindDates-[.\d]+/.*
+blib/.*
+\.gitignore
+\.git/.*
+.*\.~\d+~
+.*\.bak
+MYMETA\.(json|yml)
+testing/.*
