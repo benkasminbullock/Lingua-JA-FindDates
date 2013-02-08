@@ -2,7 +2,7 @@
 use warnings;
 use strict;
 use utf8;
-use Test::More tests => 51;
+use Test::More tests => 52;
 
 my $builder = Test::More->builder;
 binmode $builder->output,         ":utf8";
@@ -168,3 +168,6 @@ my $tbs =
 like (subsjdate ($tbs),
       qr/October 4, 1974/,
       "Do not convert romaji strings using the S-digit rule");
+
+my $meiji = '明治36年';
+is (subsjdate ($meiji), 1903, "Meiji conversion");
