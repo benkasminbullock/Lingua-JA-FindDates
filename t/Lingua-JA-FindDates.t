@@ -2,7 +2,7 @@
 use warnings;
 use strict;
 use utf8;
-use Test::More tests => 51;
+use Test::More tests => 52;
 
 my $builder = Test::More->builder;
 binmode $builder->output,         ":utf8";
@@ -160,3 +160,7 @@ ok (subsjdate ('\'79年4月21日') eq 'April 21, \'79', "Apostrophe dates");
 # Test for the "kanji zero".
 
 ok (subsjdate ('平成二〇年一二月二六日') eq 'December 26, 2008', "kanji zero handling");
+TODO: {
+    local $TODO = 'incorrect interpretation of romaji strings';
+    ok (subsjdate ('赤い迷路	TBS	1974年10月4日 - 1975年3月27日	赤いシリーズ第1作目') =~ /4 October, 1974/, "Do not convert romaji strings using the S-digit rule");
+};

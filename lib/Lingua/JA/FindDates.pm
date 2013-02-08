@@ -1,6 +1,6 @@
 package Lingua::JA::FindDates;
 
-use 5.008000;
+use 5.010000;
 require Exporter;
 use AutoLoader qw(AUTOLOAD);
 our @ISA = qw(Exporter);
