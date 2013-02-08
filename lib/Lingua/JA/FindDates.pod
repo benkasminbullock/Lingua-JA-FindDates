@@ -366,7 +366,7 @@ Ben Bullock, <bkb@cpan.org>
 
 =head1 COPYRIGHT AND LICENCE
 
-Copyright (C) 2008-2012 Ben Bullock.
+Copyright (C) 2008-2013 Ben Bullock.
 
 You may use, copy, distribute, and modify this module under the same
 terms as the Perl programming language.
