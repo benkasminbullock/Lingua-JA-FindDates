@@ -125,7 +125,7 @@ M    => 1869,
 
 # Japanese year, with era like "Heisei" at the beginning.
 
-my $jyear = $jera.'\h*('."$jdigit+|[$kanjidigits]+".'|元)\h*年';
+my $jyear = qr/$jera\h*($jdigit+|[$kanjidigits]+|元)\h*年/;
 
 # The "jun" or approximately ten day periods (thirds of a month)
 
@@ -146,18 +146,18 @@ my @weekdays = split '',$weekdays;
 #平成二十年七月一日
 #    日本論・日本人論は非常に面白いものだ。
 
-my $match_weekday = '[（(]?(['.$weekdays.'])'.
-    '(?:(?:(?:曜日|曜)[)\）])|[)\）]|(?=\W))';
+my $match_weekday =
+    qr/[（(]?([$weekdays])(?:(?:(?:曜日|曜)[)\）])|[)\）]|(?=\W))/;
 
 # my $match_weekday = '[（(]?(['.$weekdays.'])(?:曜日|曜)?[)）]?';
 
 # Match a day of the month, like 10日
 
-my $match_dom = $jnumber.'\h*日';
+my $match_dom = qr/$jnumber\h*日/;
 
 # Match a month
 
-my $match_month = $jnumber.'\h*月';
+my $match_month = qr/$jnumber\h*月/;
 
 # Match a "jun" (a third of a month).
 
