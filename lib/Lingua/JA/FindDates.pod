@@ -51,6 +51,12 @@ Lingua::JA::FindDates - scan text to find dates in a Japanese format
 
   # This prints "3/16"
 
+  # Convert Western to Japanese dates
+  use Lingua::JA::FindDates 'seireki_to_nengo';
+  print seireki_to_nengo ('1989年1月1日');
+  # This prints "昭和64年1月1日".
+
+
 =head1 DESCRIPTION
 
 This module offers pattern matching of dates in the Japanese
@@ -174,7 +180,25 @@ kanji2number only goes up to thousands, because usually dates only go
 that far. For a more comprehensive Japanese number convertor, see
 L<Lingua::JA::Numbers>.
 
-=cut
+=head2 seireki_to_nengo
+
+  use Lingua::JA::FindDates 'seireki_to_nengo';
+  print seireki_to_nengo ('1989年1月1日');
+  # This prints "昭和64年1月1日".
+
+This function substitutes Western-style dates with Japanese-style
+"nengo" dates (年号). The "nengo" dates go back to the Meiji period
+(1868).
+
+=head2 nengo_to_seireki
+
+  use Lingua::JA::FindDates 'nengo_to_seireki';
+  print nengo_to_seireki ('昭和64年1月1日');
+  # This prints "1989年1月1日".
+
+This function substitutes Japanese-style "nengo" dates (年号) with
+Western-style dates. The "nengo" dates go back to the Meiji period
+(1868).
 
 =head1 DEFAULT CALLBACKS
 
