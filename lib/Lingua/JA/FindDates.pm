@@ -15,19 +15,20 @@ use utf8;
 
 my %kanjinums = 
 (
-〇 => 0,
-一 => 1,
-二 => 2,
-三 => 3,
-四 => 4,
-五 => 5,
-六 => 6,
-七 => 7,
-八 => 8,
-九 => 9,
-十 => 10,
-百 => 100,
-千 => 1000, # Dates shouldn't get any bigger than this X a digit
+    〇 => 0,
+    一 => 1,
+    二 => 2,
+    三 => 3,
+    四 => 4,
+    五 => 5,
+    六 => 6,
+    七 => 7,
+    八 => 8,
+    九 => 9,
+    十 => 10,
+    百 => 100,
+    # Dates shouldn't get any bigger than the following times a digit.
+    千 => 1000,
 ); 
 
 # The kanji digits.
@@ -79,6 +80,13 @@ sub kanji2number
     }
 }
 
+#  ____                               
+# |  _ \ ___  __ _  _____  _____  ___ 
+# | |_) / _ \/ _` |/ _ \ \/ / _ \/ __|
+# |  _ <  __/ (_| |  __/>  <  __/\__ \
+# |_| \_\___|\__, |\___/_/\_\___||___/
+#            |___/                    
+
 # Map "double-byte" or "double-width" numbers to single byte numbers
 # (the usual ASCII numbers).
 
@@ -109,7 +117,12 @@ my $wyear = qr/
               /x;
 
 my $alpha_era = qr/
-                      [H|Ｈ|S|Ｓ|T|Ｔ|M|Ｍ]
+                      # If the H, S, T, or M is part of a longer
+                      # string of romaji, do not match it.
+                      (?<![A-ZＡ-Ｚ])
+                      (?:
+                          [H|Ｈ|S|Ｓ|T|Ｔ|M|Ｍ]
+                      )
                   /x;
 
 # The recent era names (Heisei, Showa, Taisho, Meiji). These eras are
@@ -134,16 +147,25 @@ my %jera2w = (
     明治 => 1869,
 );
 
-#  ____                               
-# |  _ \ ___  __ _  _____  _____  ___ 
-# | |_) / _ \/ _` |/ _ \ \/ / _ \/ __|
-# |  _ <  __/ (_| |  __/>  <  __/\__ \
-# |_| \_\___|\__, |\___/_/\_\___||___/
-#            |___/                    
-
 # Japanese year, with era like "Heisei" at the beginning.
 
-my $jyear = qr/$jera\h*($jdigit+|[$kanjidigits]+|元)\h*年/;
+my $jyear = qr/
+                  $jera
+                  \h*
+                  # Only match up to one or two of these digits, to
+                  # prevent unlikely matches.
+                  (
+                      $jdigit{1,2}
+                  |
+                      [$kanjidigits]{1,2}
+                  |
+                      # The first year of an era, something like
+                      # "昭和元年" (1926, the first year of the Showa era).
+                      元 
+                  )
+                  \h*
+                  年
+              /x;
 
 # The "jun" or approximately ten day periods (thirds of a month)
 
@@ -151,7 +173,12 @@ my %jun = qw/初 1 上 1 中 2 下 3/;
 
 # The translations of the "jun" above into English.
 
-my @jun2english = ('invalid', 'early ', 'mid-', 'late ');
+my @jun2english = (
+    'invalid',
+    'early ',
+    'mid-',
+    'late ',
+);
 
 # Japanese days of the week, from Monday to Sunday.
 
@@ -196,7 +223,11 @@ my $match_month_day = qr/$match_month\h*$match_dom/;
 
 # Match a Japanese year, month, day string
 
-my $matchymd = qr/$jyear\h*$match_month_day/;
+my $matchymd = qr/
+                     $jyear
+                     \h*
+                     $match_month_day
+                 /x;
 
 # Match a Western year, month, day string
 

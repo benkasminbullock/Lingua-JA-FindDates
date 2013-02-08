@@ -286,11 +286,12 @@ Please also note the following:
 
 =over
 
-=item No sanity check of Japanese era dates
+=item Minimal sanity check of Japanese era dates
 
-It does not detect that dates like 昭和百年 (Showa 100, an impossible
+It does not detect that dates like 昭和99年 (Showa 99, an impossible
 year, since Showa 63 (1988) was succeeded by Heisei 1 (1989)) are
-invalid.
+invalid. It does, however, only allow two digits for these named-era
+dates.
 
 =item Only goes back to Meiji
 

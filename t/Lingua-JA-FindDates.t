@@ -2,14 +2,12 @@
 use warnings;
 use strict;
 use utf8;
-use Test::More tests => 52;
+use Test::More tests => 51;
 
 my $builder = Test::More->builder;
 binmode $builder->output,         ":utf8";
 binmode $builder->failure_output, ":utf8";
 binmode $builder->todo_output,    ":utf8";
-
-BEGIN { use_ok('Lingua::JA::FindDates') };
 
 use Lingua::JA::FindDates qw/subsjdate/;
 
@@ -151,16 +149,22 @@ my $date_with_linebreak = <<EOF;
 平成21年
 11月 4日
 EOF
+
 ok (subsjdate ($date_with_linebreak) =~ /2009\nNovember 4/,
     "Two dates on two lines not turned into one date");
-# $Lingua::JA::FindDates::verbose = 1;
-#print subsjdate ('\'79年4月21日');
+
 ok (subsjdate ('\'79年4月21日') eq 'April 21, \'79', "Apostrophe dates");
 
 # Test for the "kanji zero".
 
-ok (subsjdate ('平成二〇年一二月二六日') eq 'December 26, 2008', "kanji zero handling");
-TODO: {
-    local $TODO = 'incorrect interpretation of romaji strings';
-    ok (subsjdate ('赤い迷路	TBS	1974年10月4日 - 1975年3月27日	赤いシリーズ第1作目') =~ /4 October, 1974/, "Do not convert romaji strings using the S-digit rule");
-};
+is (subsjdate ('平成二〇年一二月二六日'), 'December 26, 2008',
+    "kanji zero handling");
+
+# Test for romaji-swallowing
+
+my $tbs =
+'赤い迷路	TBS	1974年10月4日 - 1975年3月27日	赤いシリーズ第1作目';
+
+like (subsjdate ($tbs),
+      qr/October 4, 1974/,
+      "Do not convert romaji strings using the S-digit rule");
