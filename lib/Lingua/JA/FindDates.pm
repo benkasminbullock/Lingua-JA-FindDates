@@ -88,10 +88,15 @@ my %wtonarrow;
 for (0..9) {
     $wtonarrow{$wnums[$_]} = $_;
 }
-my $jdigit = '[０-９0-9]';
+
+my $jdigit = qr/[０-９0-9]/;
+
 # A regular expression to match Japanese numbers
-my $jnumber = "($jdigit+|[$kanjidigits]+)";
+
+my $jnumber = qr/($jdigit+|[$kanjidigits]+)/x;
+
 # A regular expression to match a Western year
+
 my $wyear = qr/
                   (
                       $jdigit{4}
@@ -103,9 +108,14 @@ my $wyear = qr/
                   \s*年
               /x;
 
+my $alpha_era = qr/
+                      [H|Ｈ|S|Ｓ|T|Ｔ|M|Ｍ]
+                  /x;
+
 # The recent era names (Heisei, Showa, Taisho, Meiji). These eras are
 # sometimes written using the letters H, S, T, and M.
-my $jera = qr/(H|Ｈ|平成|S|Ｓ|昭和|T|Ｔ|大正|M|Ｍ|明治)/;
+
+my $jera = qr/($alpha_era|平成|昭和|大正|明治)/;
 
 # A map of Japanese eras to Western dates.
 
