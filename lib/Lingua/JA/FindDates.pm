@@ -5,7 +5,7 @@ require Exporter;
 use AutoLoader qw(AUTOLOAD);
 our @ISA = qw(Exporter);
 @EXPORT_OK= qw/subsjdate kanji2number/;
-our $VERSION = '0.015';
+our $VERSION = '0.016';
 use warnings;
 use strict;
 use Carp;
