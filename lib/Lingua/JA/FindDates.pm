@@ -918,27 +918,61 @@ sub seireki_to_nengo_make_date
             my $eday = $era->[3];
             my $month = $date->{month};
             my $date = $date->{date};
+
+            # This is a flag which says whether to perform a
+            # substitution of the year or not.
+
             my $subs;
+
+            # If the year is greater than the era year, or if the year
+            # is the same as the era year and we do not know the
+            # month, just replace.
+
             if ($year > $eyear ||
                 ($year == $eyear && ! defined ($month))) {
                 $subs = 1;
             }
+
+            # If the year is the same, and there is a month
+
             elsif ($year == $eyear && defined ($month)) {
+
+                # If there is a day of the month, then only substitute
+                # if the month is greater than the changeover month,
+                # or the month is the same, and the day of the month
+                # is greater than or equal to the changeover day of
+                # the month.
+
                 if (defined ($date)) {
                     if ($month > $emonth ||
                         ($month == $emonth && $date >= $eday)) {
                         $subs = 1;
                     }
                 }
+
+                # If we don't know the day of the month, substitute if
+                # the month is greater than or equal to the changeover
+                # month.
+
                 elsif ($month >= $emonth) {
                     $subs = 1;
                 }
             }
             if ($subs) {
+
+                # Only substitute if we need to.
+
                 if ($original !~ /$ename/) {
+
+                    # The year counting starts from 1, so we add 1 to
+                    # the difference.
+
                     my $hyear = $year - $eyear + 1;
                     $original =~ s/\d+年/$ename${hyear}年/;
                 }
+
+                # Don't replace again, stop the loop.
+
                 last;
             }
         }
@@ -946,6 +980,9 @@ sub seireki_to_nengo_make_date
     my $count = $data->{count};
     $data->{$count} = $original;
     $data->{count}++;
+
+    # This is a tag for substituting with.
+
     return "#REPLACEME${count}REPLACEME#";
 }
 
