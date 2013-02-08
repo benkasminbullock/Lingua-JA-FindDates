@@ -92,28 +92,36 @@ my $jdigit = '[０-９0-9]';
 # A regular expression to match Japanese numbers
 my $jnumber = "($jdigit+|[$kanjidigits]+)";
 # A regular expression to match a Western year
-my $wyear = '('.$jdigit.'{4}|['.$kanjidigits.']?千['.$kanjidigits.']*|'.
-    '[\']'.$jdigit.'{2}'.
-    ')\s*年';
+my $wyear = qr/
+                  (
+                      $jdigit{4}
+                  |
+                      [$kanjidigits]?千[$kanjidigits]*
+                  |
+                      [\']$jdigit{2}
+                  )
+                  \s*年
+              /x;
 
 # The recent era names (Heisei, Showa, Taisho, Meiji). These eras are
 # sometimes written using the letters H, S, T, and M.
-my $jera = '(H|Ｈ|平成|S|Ｓ|昭和|T|Ｔ|大正|M|Ｍ|明治)';
+my $jera = qr/(H|Ｈ|平成|S|Ｓ|昭和|T|Ｔ|大正|M|Ｍ|明治)/;
 
 # A map of Japanese eras to Western dates.
+
 my %jera2w = (
-H    => 1988,
-Ｈ   => 1988,
-平成 => 1988,
-S    => 1925,
-Ｓ   => 1925,
-昭和 => 1925,
-T    => 1911,
-Ｔ   => 1911,
-大正 => 1911,
-M    => 1869,
-Ｍ   => 1869,
-明治 => 1869,
+    H    => 1988,
+    Ｈ   => 1988,
+    平成 => 1988,
+    S    => 1925,
+    Ｓ   => 1925,
+    昭和 => 1925,
+    T    => 1911,
+    Ｔ   => 1911,
+    大正 => 1911,
+    M    => 1869,
+    Ｍ   => 1869,
+    明治 => 1869,
 );
 
 #  ____                               
@@ -147,7 +155,10 @@ my @weekdays = split '',$weekdays;
 #    日本論・日本人論は非常に面白いものだ。
 
 my $match_weekday =
-    qr/[（(]?([$weekdays])(?:(?:(?:曜日|曜)[)\）])|[)\）]|(?=\W))/;
+    qr/[\（(]?
+       ([$weekdays])
+       (?:(?:(?:曜日|曜)[)\）])|[)\）]|(?=\W))
+      /x;
 
 # my $match_weekday = '[（(]?(['.$weekdays.'])(?:曜日|曜)?[)）]?';
 
@@ -161,40 +172,42 @@ my $match_month = qr/$jnumber\h*月/;
 
 # Match a "jun" (a third of a month).
 
-my $match_jun = '(['.join ('', keys %jun).'])\h*旬';
+my $jun_keys = join ('', keys %jun);
+
+my $match_jun = qr/([$jun_keys])\h*旬/;
 
 # Match a month+jun
 
-my $match_month_jun = $match_month.'\h*'.$match_jun;
+my $match_month_jun = qr/$match_month\h*$match_jun/;
 
 # Match a month and day of month pair
 
-my $match_month_day = $match_month.'\h*'.$match_dom;
+my $match_month_day = qr/$match_month\h*$match_dom/;
 
 # Match a Japanese year, month, day string
 
-my $matchymd = $jyear.'\h*'.$match_month_day;
+my $matchymd = qr/$jyear\h*$match_month_day/;
 
 # Match a Western year, month, day string
 
-my $matchwymd = $wyear.'\h*'.$match_month_day;
+my $matchwymd = qr/$wyear\h*$match_month_day/;
 
 # Match a Japanese year and month only
 
-my $match_jyear_month = $jyear.'\h*'.$match_month;
+my $match_jyear_month = qr/$jyear\h*$match_month/;
 
 # Match a Western year and month only
 
-my $match_wyear_month = $wyear.'\h*'.$match_month;
+my $match_wyear_month = qr/$wyear\h*$match_month/;
 
 # Match a month, day, weekday.
 
-my $match_month_day_weekday = $match_month_day.'\h*'.$match_weekday;
+my $match_month_day_weekday = qr/$match_month_day\h*$match_weekday/;
 
 # Separators used in date strings
 # Microsoft Word uses Unicode 0xFF5E, the "fullwidth tilde", for nyoro symbol.
 
-my $separators = '\h*[〜−~]\h*';
+my $separators = qr/\h*[〜−~]\h*/;
  
 # =head2 Matching patterns
 
@@ -266,136 +279,265 @@ my $separators = '\h*[〜−~]\h*';
 
 my @jdatere = (
 
-# Match an empty string like 平成 月 日 as found on a form etc.
+    # Match an empty string like 平成 月 日 as found on a form etc.
 
-[$jyear.'(\h+)月\h+日', "ejx"],
+    [qr/
+           $jyear
+           (\h+)
+           月
+           \h+
+           日
+       /x,
+     "ejx"],
 
-# Add match for dummy strings here
+    # Add match for dummy strings here!
 
-# Match a Japanese era, year, 2 x (month day weekday) combination
+    # Match a Japanese era, year, 2 x (month day weekday) combination
 
-[$matchymd.'\h*'.$match_weekday.$separators.
- $match_month_day_weekday, "ejm1d1w1m2d2w2"],
+    [qr/
+           $matchymd
+           \h*$match_weekday
+           $separators
+           $match_month_day_weekday
+       /x,
+     "ejm1d1w1m2d2w2"],
 
-# Match a Japanese era, year, month 2 x (day, weekday) combination
+    # Match a Japanese era, year, month 2 x (day, weekday) combination
 
-[$matchymd.$match_weekday.$separators.$match_dom.'\h*'.$match_weekday, 
- "ejmd1w1d2w2"],
+    [qr/
+           $matchymd
+           $match_weekday
+           $separators
+           $match_dom
+           \h*
+           $match_weekday
+       /x, 
+     "ejmd1w1d2w2"],
 
-# Match a Japanese era, year, month 2 x day combination
+    # Match a Japanese era, year, month 2 x day combination
 
-[$matchymd.$separators.$match_dom.'\h*'.$match_weekday, "ejmd1d2"],
+    [qr/
+           $matchymd
+           $separators
+           $match_dom
+           \h*
+           $match_weekday
+       /x,
+     "ejmd1d2"],
 
-# Match a Western year, 2x(month, day, weekday) combination
+    # Match a Western year, 2x(month, day, weekday) combination
 
-[$matchwymd.'\h*'.$match_weekday.$separators.$match_month_day_weekday,
- "ym1d1w1m2d2w2"],
+    [qr/
+           $matchwymd
+           \h*
+           $match_weekday
+           $separators
+           $match_month_day_weekday
+       /x,
+     "ym1d1w1m2d2w2"],
 
-# Match a Western year, month, 2x(day, weekday) combination
+    # Match a Western year, month, 2x(day, weekday) combination
 
-[$matchwymd.'\h*'.$match_weekday.$separators.$match_dom.'\h*'.$match_weekday,
- "ymd1w1d2w2"],
+    [qr/
+           $matchwymd
+           \h*
+           $match_weekday
+           $separators
+           $match_dom
+           \h*
+           $match_weekday
+       /x,
+     "ymd1w1d2w2"],
 
-# Match a Western year, month, 2x(day) combination
+    # Match a Western year, month, 2x(day) combination
 
-[$matchwymd.$separators.$match_dom,
- "ymd1d2"],
+    [qr/
+           $matchwymd
+           $separators
+           $match_dom
+       /x,
+     "ymd1d2"],
 
-# Match a Japanese era, year, month1 day1 - month 2 day2 combination
+    # Match a Japanese era, year, month1 day1 - month 2 day2 combination
 
-[$matchymd.$separators.$match_month_day, "ejm1d1m2d2"],
+    [qr/
+           $matchymd
+           $separators
+           $match_month_day
+       /x,
+     "ejm1d1m2d2"],
 
-# Match a Japanese era, year, month1 - month 2 combination
+    # Match a Japanese era, year, month1 - month 2 combination
 
-[$jyear.'\h*'.$jnumber.'\h*月?'.$separators.$match_month, "ejm1m2"],
+    [qr/
+           $jyear
+           \h*
+           $jnumber
+           \h*月?
+           $separators
+           $match_month
+       /x, "ejm1m2"],
 
-# Match a Japanese era, year, month, day1 - day2 combination
+    # Match a Japanese era, year, month, day1 - day2 combination
 
-[$match_jyear_month.'\h*'.$jnumber.'\h*日?'.$separators.$match_dom, "ejmd1d2"],
+    [qr/
+           $match_jyear_month
+           \h*
+           $jnumber
+           \h*日?
+           $separators
+           $match_dom
+       /x,
+     "ejmd1d2"],
 
-# Match a Japanese era, year, month, day, weekday combination
+    # Match a Japanese era, year, month, day, weekday combination
 
-[$matchymd.'\h*'.$match_weekday     , "ejmdw"],
+    [qr/
+           $matchymd
+           \h*
+           $match_weekday
+       /x,
+     "ejmdw"],
 
-# Match a Japanese era, year, month, day
+    # Match a Japanese era, year, month, day
 
-[$matchymd                     , "ejmd"],
+    [qr/$matchymd/,
+     "ejmd"],
 
-# Match a Japanese era, year, month, jun
+    # Match a Japanese era, year, month, jun
 
-[$match_jyear_month.'\h*'.$match_jun    , "ejmz"],
+    [qr/
+           $match_jyear_month
+           \h*
+           $match_jun
+       /x,
+     "ejmz"],
 
-# Match a Western year, month, day, weekday combination
+    # Match a Western year, month, day, weekday combination
 
-[$matchwymd.'\h*'.$match_weekday    , "ymdw"],
+    [qr/
+           $matchwymd
+           \h*
+           $match_weekday
+       /x,
+     "ymdw"],
 
-# Match a Western year, month, day combination
+    # Match a Western year, month, day combination
 
-[$matchwymd           	       , "ymd"],
+    [qr/$matchwymd/,
+     "ymd"],
 
-# Match a Western year, month, jun combination
+    # Match a Western year, month, jun combination
 
-[$match_wyear_month.'\h*'.$match_jun     , "ymz"],
+    [qr/
+           $match_wyear_month
+           \h*
+           $match_jun
+       /x,
+     "ymz"],
 
-# Match a Japanese era, year, month
+    # Match a Japanese era, year, month
 
-[$jyear.'\h*'.$jnumber.'\h*月' , "ejm"],
+    [qr/
+           $jyear
+           \h*
+           $jnumber
+           \h*
+           月
+       /x,
+     "ejm"],
 
-# Match a Western year, month
+    # Match a Western year, month
 
-[$match_wyear_month     , "ym"],
+    [qr/$match_wyear_month/,
+     "ym"],
 
-# Match 2 x (month, day, weekday)
+    # Match 2 x (month, day, weekday)
 
-[$match_month_day_weekday.$separators.$match_month_day_weekday, 
- "m1d1w1m2d2w2"],
+    [qr/
+           $match_month_day_weekday
+           $separators
+           $match_month_day_weekday
+       /x, 
+     "m1d1w1m2d2w2"],
 
-# Match month, 2 x (day, weekday)
+    # Match month, 2 x (day, weekday)
 
-[$match_month_day_weekday.$separators.$match_dom.'\h*'.$match_weekday,
- "md1w1d2w2"],
+    [qr/
+           $match_month_day_weekday
+           $separators
+           $match_dom
+           \h*
+           $match_weekday
+       /x,
+     "md1w1d2w2"],
 
-# Match month, 2 x (day, weekday)
+    # Match month, 2 x (day, weekday)
 
-[$match_month_day.$separators.$match_dom,
- "md1d2"],
+    [qr/
+           $match_month_day
+           $separators
+           $match_dom
+       /x,
+     "md1d2"],
 
-# Match a month, day, weekday
+    # Match a month, day, weekday
 
-[$match_month_day_weekday     , "mdw"],
+    [qr/$match_month_day_weekday/,
+     "mdw"],
 
-# Match a month, day
+    # Match a month, day
 
-[$match_month_day              , "md"],
+    [qr/$match_month_day/,
+     "md"],
 
-# Match a fiscal year (年度, nendo in Japanese). These usually don't
-# have months combined with them, so there is nothing to match a
-# fiscal year with a month.
+    # Match a fiscal year (年度, nendo in Japanese). These usually don't
+    # have months combined with them, so there is nothing to match a
+    # fiscal year with a month.
 
-[$jyear.'度'                   , "en"],
+    [qr/
+           $jyear
+           度
+       /x,
+     "en"],
 
-# Match a fiscal year (年度, nendo in Japanese). These usually don't
-# have months combined with them, so there is nothing to match a
-# fiscal year with a month.
+    # Match a fiscal year (年度, nendo in Japanese). These usually don't
+    # have months combined with them, so there is nothing to match a
+    # fiscal year with a month.
 
-[$wyear.'度'                   , "n"],
+    [qr/
+           $wyear
+           度
+       /x,
+     "n"],
 
-# Match a Japanese era, year
+    # Match a Japanese era, year
 
-[$jyear,                        "ej"],
+    [qr/$jyear/,
+     "ej"],
 
-# Match a Western year
+    # Match a Western year
 
-[$wyear                        , "y"],
+    [qr/$wyear/,
+     "y"],
 
-# Match a month with a jun
+    # Match a month with a jun
 
-[$match_month.'\h*'.$match_jun , "mz"],
+    [
+        qr/
+              $match_month
+              \h*
+              $match_jun
+          /x,
+        "mz"
+    ],
 
-# Match a month
+    # Match a month
 
-[$match_month                    , "m"],
-
+    [
+        qr/$match_month/,
+        "m"
+    ],
 );
 
 my @months = qw/Invalid
