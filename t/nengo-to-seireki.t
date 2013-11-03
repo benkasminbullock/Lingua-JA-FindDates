@@ -25,4 +25,5 @@ my $out = <<EOF;
 EOF
 
 is (nengo_to_seireki ($in), $out);
+
 done_testing ();

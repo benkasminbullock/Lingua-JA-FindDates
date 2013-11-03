@@ -1,8 +1,7 @@
-
 use warnings;
 use strict;
 use utf8;
-use Test::More tests => 52;
+use Test::More;
 
 my $builder = Test::More->builder;
 binmode $builder->output,         ":utf8";
@@ -171,3 +170,22 @@ like (subsjdate ($tbs),
 
 my $meiji = '明治36年';
 is (subsjdate ($meiji), 1903, "Meiji conversion");
+
+my @squares = qw/
+		    ㍻1年
+		    ㍼1年
+		    ㍽1年
+		    ㍾1年
+		/;
+my @years = (1989, 1926, 1912, 1868);
+
+for my $i (0..$#squares) {
+    is (subsjdate ($squares[$i]), $years[$i], "square years");
+}
+
+TODO: {
+    local $TODO = 'bugs';
+}; 
+
+done_testing ();
+exit;

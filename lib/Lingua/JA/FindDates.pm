@@ -128,7 +128,7 @@ my $alpha_era = qr/
 # The recent era names (Heisei, Showa, Taisho, Meiji). These eras are
 # sometimes written using the letters H, S, T, and M.
 
-my $jera = qr/($alpha_era|平成|昭和|大正|明治)/;
+my $jera = qr/($alpha_era|平成|昭和|大正|明治|㍻|㍼|㍽|㍾)/;
 
 # A map of Japanese eras to Western dates. These are the starting year
 # of the period minus one, to allow for that the first year is "heisei
@@ -138,15 +138,19 @@ my %jera2w = (
     H    => 1988,
     Ｈ   => 1988,
     平成 => 1988,
+    '㍻' => 1988,
     S    => 1925,
     Ｓ   => 1925,
     昭和 => 1925,
+    '㍼' => 1925,
     T    => 1911,
     Ｔ   => 1911,
     大正 => 1911,
+    '㍽' => 1911,
     M    => 1867,
     Ｍ   => 1867,
     明治 => 1867,
+    '㍾' => 1867,
 );
 
 # Japanese year, with era like "Heisei" at the beginning.
