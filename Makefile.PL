@@ -10,7 +10,8 @@ if ($] < 5.010) {
 
 my $repo = 'https://github.com/benkasminbullock/Lingua--JA--FindDates';
 my $base = 'lib/Lingua/JA/FindDates';
-my $pm = "$base.pm";
+#my $pm = "$base.pm";
+my $pm = "lib/Lingua/JA/FindDates.pm";
 my $pod = "$base.pod";
 
 WriteMakefile (
@@ -28,4 +29,5 @@ WriteMakefile (
             bugtracker => "$repo/issues",
         },
     },
+    MIN_PERL_VERSION => '5.010001',
 );

@@ -3,6 +3,8 @@ use strict;
 use utf8;
 use Test::More;
 
+binmode STDOUT, ":utf8";
+binmode STDERR, ":utf8";
 my $builder = Test::More->builder;
 binmode $builder->output,         ":utf8";
 binmode $builder->failure_output, ":utf8";
@@ -88,6 +90,7 @@ my %jdates =
 '七月' => 'July',
 '昭和４９年度' => 'fiscal 1974',
 '1999年度' => 'fiscal 1999',
+'明19' => '1886',
 );
 
 sub replace_callback

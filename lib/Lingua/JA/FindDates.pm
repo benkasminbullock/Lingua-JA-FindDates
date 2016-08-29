@@ -4,8 +4,12 @@ use 5.010000;
 require Exporter;
 use AutoLoader qw(AUTOLOAD);
 our @ISA = qw(Exporter);
-@EXPORT_OK= qw/subsjdate kanji2number seireki_to_nengo nengo_to_seireki/;
-our $VERSION = '0.019';
+@EXPORT_OK= qw/subsjdate kanji2number seireki_to_nengo nengo_to_seireki
+	       regjnums/;
+%EXPORT_TAGS = (
+    all => \@EXPORT_OK,
+);
+our $VERSION = '0.021';
 use warnings;
 use strict;
 use Carp;
@@ -128,7 +132,7 @@ my $alpha_era = qr/
 # The recent era names (Heisei, Showa, Taisho, Meiji). These eras are
 # sometimes written using the letters H, S, T, and M.
 
-my $jera = qr/($alpha_era|平成|昭和|大正|明治|㍻|㍼|㍽|㍾)/;
+my $jera = qr/($alpha_era|平|昭|大|明|平成|昭和|大正|明治|㍻|㍼|㍽|㍾)/;
 
 # A map of Japanese eras to Western dates. These are the starting year
 # of the period minus one, to allow for that the first year is "heisei
@@ -138,18 +142,22 @@ my %jera2w = (
     H    => 1988,
     Ｈ   => 1988,
     平成 => 1988,
+    平 => 1988,
     '㍻' => 1988,
     S    => 1925,
     Ｓ   => 1925,
     昭和 => 1925,
+    昭 => 1925,
     '㍼' => 1925,
     T    => 1911,
     Ｔ   => 1911,
     大正 => 1911,
+    大 => 1911,
     '㍽' => 1911,
     M    => 1867,
     Ｍ   => 1867,
     明治 => 1867,
+    明 => 1867,
     '㍾' => 1867,
 );
 
@@ -990,6 +998,16 @@ sub seireki_to_nengo_make_date
     # This is a tag for substituting with.
 
     return "#REPLACEME${count}REPLACEME#";
+}
+
+# Regularize any small integer Japanese numbers in a piece of text.
+
+sub regjnums
+{
+    my ($input) = @_;
+    $input =~ s/([０-９])/$wtonarrow{$1}/g;
+    $input =~ s/([$kanjidigits]+)/kanji2number($1)/ge;
+    return $input;
 }
 
 1;
