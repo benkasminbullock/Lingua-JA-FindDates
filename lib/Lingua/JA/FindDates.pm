@@ -9,7 +9,7 @@ our @ISA = qw(Exporter);
 %EXPORT_TAGS = (
     all => \@EXPORT_OK,
 );
-our $VERSION = '0.022';
+our $VERSION = '0.023';
 use warnings;
 use strict;
 use Carp qw/carp croak cluck/;
