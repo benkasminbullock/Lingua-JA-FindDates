@@ -9,10 +9,10 @@ our @ISA = qw(Exporter);
 %EXPORT_TAGS = (
     all => \@EXPORT_OK,
 );
-our $VERSION = '0.021';
+our $VERSION = '0.022';
 use warnings;
 use strict;
-use Carp;
+use Carp qw/carp croak cluck/;
 use utf8;
 
 # Kanji number conversion table.
@@ -353,9 +353,19 @@ my @jdatere = (
            $matchymd
            \h*$match_weekday
            $separators
-           $match_month_day_weekday
+           $matchymd
+           \h*$match_weekday
        /x,
-     "ejm1d1w1m2d2w2"],
+     "e1j1m1d1w1e2j2m2d2w2"],
+
+    # Match 2 x (era, year, month, day) combination
+
+    [qr/
+           $matchymd
+           $separators
+           $matchymd
+       /x,
+     "e1j1m1d1e2j2m2d2"],
 
     # Match a Japanese era, year, month 2 x (day, weekday) combination
 
@@ -379,6 +389,18 @@ my @jdatere = (
            $match_weekday
        /x,
      "ejmd1d2"],
+
+    # Match 2x(Western year, month, day, weekday) combination
+
+    [qr/
+           $matchwymd
+           \h*
+           $match_weekday
+           $separators
+           $matchwymd
+           $match_weekday
+       /x,
+     "y1m1d1w1y2m2d2w2"],
 
     # Match a Western year, 2x(month, day, weekday) combination
 
@@ -421,6 +443,19 @@ my @jdatere = (
            $match_month_day
        /x,
      "ejm1d1m2d2"],
+
+    # Match 2 x ( Japanese era, year, month) combination
+
+    [qr/
+           $jyear
+           \h*
+           $jnumber
+           \h*月?
+           $separators
+           $jyear
+           \h*
+           $match_month
+       /x, "e1j1m1e2j2m2"],
 
     # Match a Japanese era, year, month1 - month 2 combination
 
@@ -631,6 +666,16 @@ my %j2eweekday;
 
 sub make_date
 {
+    goto & default_make_date;
+}
+
+sub make_date_interval
+{
+    goto & default_make_date_interval;
+}
+
+sub default_make_date
+{
     my ($datehash) = @_;
     my ($year, $month, $date, $wday, $jun) = 
 	@{$datehash}{qw/year month date wday jun/};
@@ -663,10 +708,12 @@ sub make_date
     return $edate;
 }
 
+our $date_sep = '-';
+
 # This is the default routine for turning a date interval into a
 # foreign-style one, which is then substituted into the text.
 
-sub make_date_interval
+sub default_make_date_interval
 {
     my ($date1, $date2) = @_;
     my $einterval = '';
@@ -689,7 +736,7 @@ sub make_date_interval
 	    }
 	    $usecomma = 1;
 	    $einterval = $days[$date1->{wday}]  . " " . $date1->{date} .
-		         ($date2->{month} ? ' '.$months[int ($date1->{month})] : ''). '-' .
+		         ($date2->{month} ? ' '.$months[int ($date1->{month})] : ''). $date_sep .
 		         $days[$date2->{wday}]  . " " . $date2->{date} . " " .
 			 ($date2->{month} ? $months[int ($date2->{month})] : $months[int ($date1->{month})]);
 	}
@@ -697,25 +744,25 @@ sub make_date_interval
 	    $usecomma = 1;
 	    if ($date1->{wday} || $date2->{wday}) {
 		carp "malformed date interval: ",
-		    "has weekday for one date but not the other one.";
+		    "has weekday for one date $date1->{wday} but not the other one $date2->{wday} .";
 		return;
 	    }
 	    $einterval = $months[int ($date1->{month})] . ' ' .
-		         $date1->{date} . '-' .
+		         $date1->{date} . $date_sep .
 			 ($date2->{month} ? 
 			  $months[int ($date2->{month})] . ' ' : '') .
 		         $date2->{date};
 	}
         else { # no dates or weekdays
 	    if ($date1->{date} || $date2->{date}) {
-		carp "malformed date interval: only one day of month";
+		cluck "malformed date interval: only one day of month";
 		return;
 	    }
 	    if (!$date2->{month}) {
 		carp "start month but no end month or date";
 		return;
 	    }
-	    $einterval = $months[int($date1->{month})] . '-' . 
+	    $einterval = $months[int($date1->{month})] . $date_sep . 
 		         $months[int($date2->{month})] .
 			 $einterval;
 	}
@@ -726,11 +773,21 @@ sub make_date_interval
 		carp "malformed date has weekdays but not days of month";
 		return;
 	    }
-	    $einterval = $date1->{wday}  . " " . $date1->{date} . '-' .
+	    $einterval = $date1->{wday}  . " " . $date1->{date} . $date_sep .
 		         $date2->{wday}  . " " . $date2->{date};
 	}
     }
-    $einterval .= ($usecomma ? ', ': ' ').$date1->{year} if $date1->{year};
+    if ($date1->{year}) {
+	my $year1 = ($usecomma ? ', ': ' ').$date1->{year};
+	if (! $date2->{year} || $date2->{year} == $date1->{year}) {
+	    $einterval .= $year1;
+	}
+	else {
+	    $einterval =~ s/\Q$date_sep/$year1$date_sep/;
+	    my $year2 = ($usecomma ? ', ': ' ').$date2->{year};
+	    $einterval .= $year2;
+	}
+    }
     return $einterval;
 }
 
@@ -762,10 +819,10 @@ sub subsjdate
     }
     # Loop through all the possible regular expressions.
     for my $datere (@jdatere) {
-	my $regex = $$datere[0];
-	my @process = split (/(?=[a-z][12]?)/, $$datere[1]);
+	my $regex = $datere->[0];
+	my @process = split (/(?=[a-z][12]?)/, $datere->[1]);
         if ($verbose) {
-            print "Looking for ",$$datere[1]," in ",$regex,"\n";
+            print "Looking for $datere->[1]\n";
         }
 	while ($text =~ /($regex)/g) {
 	    my $date1;
@@ -774,19 +831,42 @@ sub subsjdate
 	    my $orig = $1;
 	    my @matches = ($2,$3,$4,$5,$6,$7,$8,$9);
             if ($verbose) {
-                print "Found '$orig': " if $verbose;
+                print "Found '$orig': ";
             }
 	    for (0..$#matches) {
 		my $arg = $matches[$_];
 
 		last if !$arg;
-		$arg =~ s/([０-９])/$wtonarrow{$1}/g;
+		$arg =~ tr/０-９/0-9/;
+#		$arg =~ s/([０-９])/$wtonarrow{$1}/g;
 		$arg =~ s/([$kanjidigits]+|元)/kanji2number($1)/ge;
                 if ($verbose) {
-                    print "Arg $_: $arg " if $verbose;
+                    print "Arg $_: $arg ";
                 }
 		my $argdo = $process[$_];
-		if ($argdo eq 'e') { # Era name in Japanese
+		if ($argdo eq 'e1') { # Era name in Japanese
+		    print "e1\n";
+		    $date1->{year} = $jera2w{$arg};
+		}
+                elsif ($argdo eq 'j1') { # Japanese year
+		    print "j1 $arg\n";
+		    $date1->{year} += $arg;
+		}
+                elsif ($argdo eq 'y1') {
+		    print "y1 $arg\n";
+		    $date1->{year} = $arg;
+		}
+		elsif ($argdo eq 'e2') { # Era name in Japanese
+		    print "e2 $arg\n";
+		    $date2->{year} = $jera2w{$arg};
+		}
+                elsif ($argdo eq 'j2') { # Japanese year
+		    $date2->{year} += $arg;
+		}
+                elsif ($argdo eq 'y2') {
+		    $date2->{year} = $arg;
+		}
+		elsif ($argdo eq 'e') { # Era name in Japanese
 		    $date1->{year} = $jera2w{$arg};
 		}
                 elsif ($argdo eq 'j') { # Japanese year
@@ -822,7 +902,7 @@ sub subsjdate
 		}
                 elsif ($argdo eq 'x') {
                     if ($verbose) {
-                        print "Dummy date '$orig'.\n" if $verbose;
+                        print "Dummy date '$orig'.\n";
                     }
 		    $date1->{date}  = 32;
 		    $date1->{month} = 13;
@@ -838,7 +918,7 @@ sub subsjdate
                                                          $date1, $date2);
 		}
                 else {
-		    $edate = make_date_interval ($date1, $date2);
+		    $edate = default_make_date_interval ($date1, $date2);
 		}
 	    }
             else {
@@ -849,11 +929,11 @@ sub subsjdate
                                                         $date1);
 		}
                 else {
-		    $edate = make_date ($date1);
+		    $edate = default_make_date ($date1);
 		}
 	    }
             if ($verbose) {
-                print "-> '$edate'\n" if $verbose;
+                print "-> '$edate'\n";
             }
 
 

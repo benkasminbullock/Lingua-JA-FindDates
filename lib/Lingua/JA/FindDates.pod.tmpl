@@ -1,4 +1,15 @@
 [% start_year = 2008 %]
+[% MACRO example(file) BLOCK %]
+[%- pl =  file _ ".pl" -%]
+[%- out = file _ "-out.txt" -%]
+[% INCLUDE $pl | xtidy %]
+
+produces output
+
+[% INCLUDE $out | xtidy %]
+
+(This example is included as L<F<[% pl %]>|https://api.metacpan.org/source/BKB/Lingua-JA-FindDates-[% version %]/[% pl %]> in the distribution.)
+[% END %]
 =encoding UTF-8
 
 =head1 NAME
@@ -7,55 +18,7 @@ Lingua::JA::FindDates - scan text to find dates in a Japanese format
 
 =head1 SYNOPSIS
 
-  # Find and replace Japanese dates:
-
-  use Lingua::JA::FindDates 'subsjdate';
-
-  # Given a string, find and substitute all the Japanese dates in it.
-
-  my $dates = '昭和４１年三月１６日';
-  print subsjdate ($dates);
-
-  # prints "March 16, 1966"
-
-  # Find and substitute Japanese dates within a string:
-
-  my $dates = 'blah blah blah 三月１６日';
-  print subsjdate ($dates);
-
-  # prints "blah blah blah March 16"
-
-  # subsjdate can also call back a user-supplied routine each time a
-  # date is found:
-
-  sub replace_callback
-  {
-    my ($data, $before, $after) = @_;
-    print "'$before' was replaced by '$after'.\n";
-  }
-  my $dates = '三月１６日';
-  my $data = 'xyz'; # something to send to replace_callback
-  subsjdate ($dates, {replace => \&replace_callback, data => $data});
-
-  # prints "'三月１６日' was replaced by 'March 16'."
-
-  # A routine can be used to format the date any way, letting C<subsjdate>
-  # print it:
-
-  sub my_date
-  {
-    my ($data, $original, $date) = @_;
-    return join '/', $date->{month}."/".$date->{date};
-  }
-  my $dates = '三月１６日';
-  print subsjdate ($dates, {make_date => \&my_date});
-
-  # This prints "3/16"
-
-  # Convert Western to Japanese dates
-  use Lingua::JA::FindDates 'seireki_to_nengo';
-  print seireki_to_nengo ('1989年1月1日');
-  # This prints "昭和64年1月1日".
+[% example("synopsis") %]
 
 =head1 VERSION
 
@@ -64,28 +27,26 @@ commit [% commit.commit %] released on [% commit.date %].
 
 =head1 DESCRIPTION
 
-This module offers pattern matching of dates in the Japanese
-language. Its main routine, L</subsjdate> scans a text and finds
+This module's main routine, L</subsjdate>, scans a text and finds
 things which appear to be Japanese dates.
 
-The module recognizes the typical format of dates with the year first,
-followed by the month, then the day, such as 平成20年七月十日
-I<(Heisei nijūnen shichigatsu tōka)>. It also recognizes combinations
-such as years alone, years and months, a month and day without a year,
-fiscal years (年度, "nendo"), parts of the month, like 中旬 (chūjun,
-the middle of the month), and periods between two dates.
+The module recognizes a variety of date formats. It recognizes the
+typical format of dates with the year first, followed by the month,
+then the day, such as 平成20年七月十日 I<(Heisei nijūnen shichigatsu
+tōka)>. It also recognizes combinations such as years alone, years and
+months, a month and day without a year, fiscal years (年度, I<nendo>),
+parts of the month, like 中旬 (I<chūjun>, the middle of the month),
+and periods between two dates.
 
-It recognizes both the Japanese-style era-base year format, such as 
-"平成２４年" (Heisei) for the current era, and European-style Christian
-era year format, such as 2012年. It recognizes several forms of
-numerals, including the ordinary ASCII numerals, 1, 2, 3; the "wide"
-or "double width" numerals sometimes used in Japan, １, ２, ３; and
-the kanji-based numeral system, 一, 二, 三. It recognizes some special
-date formats such as 元年 for the first year of an era. It recognizes
-era names identified by their initial letters, such as S41年 for Shōwa
-41 (1966). It recognizes dates regardless of any spacing which might
-be inserted between individual Japanese characters, such as 
-"平 成 二 十 年 八 月".
+The module recognizes both Japanese years, such as "平成２４年"
+(Heisei), and European years, such as 2012年. It recognizes ASCII
+numerals, 1, 2, 3; the "wide" or "double width" numerals sometimes
+used in Japan, １, ２, ３ (see L<What is "wide ASCII"?|http://www.sljfaq.org/afaq/wide-ascii.html>); and the kanji-based numeral system, 一, 二,
+三. It recognizes some special date formats such as 元年 for the first
+year of an era. It recognizes era names identified by their initial
+letters, such as S41年 for Shōwa 41 (1966). It recognizes dates
+regardless of any spacing which might be inserted between individual
+Japanese characters, such as "平 成 二 十 年 八 月".
 
 The input text must be marked as Unicode, in other words character
 data, not byte data.
@@ -104,14 +65,23 @@ a bug.
 Translate Japanese dates into American dates. The first argument to
 C<subsjdate> is a string like "平成２０年７月３日（木）". The routine
 looks through the string to see if there is anything which appears to
-be a Japanese date. If it finds one, it calls L</make_date> to make
+be a Japanese date. If it finds one, it makes
 the equivalent date in English (American-style), and then substitutes
 it into C<$text>, as if performing the following type of operation:
 
     $text =~ s/平成２０年７月３日（木）/Thursday, July 3, 2008/g;
 
+If the text contains the interval between two dates, C<subsjdate>
+attempts to convert that into an English-language interval. This does
+not match every possible interval between dates. See L</BUGS>.
+
 Users can supply a different date-making function using the second
-argument. The second argument is a hash reference which may have the
+argument. 
+
+    my $translation = subsjdate ($text, {make_date => \mymakedate,
+                                 make_date_interval => \myinterval});
+
+The second argument is a hash reference which may have the
 following members:
 
 =over
@@ -135,39 +105,33 @@ Any data you want to pass to L</replace>, above.
 
     subsjdate ($text, {make_date => \& mymakedate});
 
-This is a replacement for the default L</make_date> function. The
-default function turns the Japanese dates into American-style dates,
-so, for example, "平成10年11月12日" is turned into "November 12,
-1998". If you don't need to replace the default (if you want
-American-style dates), you can leave this blank. If, for example, you
-want dates in the form "Th 2008/7/3", you could write a routine like
-the following:
+This is a replacement for the default L</default_make_date>
+function. The default function turns "平成10年11月12日" into "November
+12, 1998". For dates in the form "Th 2008/7/3", use a routine like the
+following:
 
-   sub mymakedate
-   {
-       my ($data, $original, $date) = @_;
-       return qw{Bad Mo Tu We Th Fr Sa Su}[$date->{wday}].
-           $date->{year}.'/'.$date->{month}.'/'.$date->{date};
-   } 
+[% example("subsjdate-make-date") %]
 
-Your routine will be called in the same way as the default routine,
-L</make_date>. It is necessary to check for the hash values for the
-fields C<year>, C<month>, C<date>, and C<wday> being zero, since
-L</subsjdate> matches "month/day" and "year/month" only dates.
-
-C<$data> is any data which is passed in to L</subsjdate>. C<$original>
-is the original text.
+The first two arguments are C<$data>, user-defined data as described
+in L</data> and C<$original>, the original Japanese-language date. The
+following argument is the date as a hash reference, with the fields
+C<year>, C<month>, C<date>, and C<wday>. Your routine must check
+whether the fields C<year>, C<month>, C<date>, and C<wday> are
+defined, since L</subsjdate> matches "month/day" and "year/month" only
+dates.
 
 =item make_date_interval
 
-This is a replacement for the L<make_date_interval> function. 
+This is a replacement for the L</default_make_date_interval> function. 
 
     subsjdate ($text, {make_date_interval => \&mymakedateinterval});
 
 Your routine is called in the same way as the default routine,
-L</make_date_interval>. Its arguments are C<$data> and C<$original> as
+L</default_make_date_interval>. Its arguments are C<$data> and C<$original> as
 for C<make_date>, and the two dates in the form of hash references
 with the same keys as for C<make_date>.
+
+[% example("subsjdate-make-interval") %]
 
 =back
 
@@ -187,87 +151,61 @@ L<Lingua::JA::Numbers>.
 
 =head2 seireki_to_nengo
 
-  use Lingua::JA::FindDates 'seireki_to_nengo';
-  print seireki_to_nengo ('1989年1月1日');
-  # This prints "昭和64年1月1日".
+[% example("seireki-to-nengo") %]
 
 This function substitutes Western-style dates with Japanese-style
 "nengo" dates (年号). The "nengo" dates go back to the Meiji period
-(1868).
+(1868). See L</BUGS>.
 
 =head2 nengo_to_seireki
 
-  use Lingua::JA::FindDates 'nengo_to_seireki';
-  print nengo_to_seireki ('昭和64年1月1日');
-  # This prints "1989年1月1日".
+[% example("nengo-to-seireki") %]
 
 This function substitutes Japanese-style "nengo" dates (年号) with
 Western-style dates. The "nengo" dates go back to the Meiji period
-(1868).
+(1868). See L</BUGS>.
 
 =head1 DEFAULT CALLBACKS
 
-=head2 make_date
+This section discusses the default subroutines which are called as
+dates are found to convert the Japanese dates into another string
+format. These callbacks are not exported. In versions of this module
+prior to 0.22, these functions were called C<make_date> and
+C<make_date_interval> respectively. The previous names still work.
 
-   # Monday 19th March 2012.
-   make_date ({
-       year => 2012,
-       month => 3,
-       date => 19,
-       wday => 1,
-   })
+=head2 default_make_date
 
-C<make_date> is the default date-string-making routine. It turns the
-date information supplied to it into a string representing the
-date. C<make_date> is not exported.
-
-L<subsjdate>, given a date like 平成２０年７月３日（木） (Heisei year
+L</subsjdate>, given a date like 平成２０年７月３日（木） (Heisei year
 20, month 7, day 3, in other words "Thursday the third of July,
 2008"), passes C<make_date> a hash reference with values C<< year =>
 2008, month => 7, date => 3, wday => 4 >> for the year, month, date
-and day of the week. C<make_date> returns a string, 'Thursday, July 3,
-2008'. If some fields of the date aren't defined, for example in the
-case of a date like ７月３日 (3rd July), the hash values for the keys
-of the unknown parts of the date, such as year or weekday, are
-undefined.
+and day of the week. C<make_date> turns the date information supplied
+to it into a string representing the date. C<make_date> is not
+exported.
+
+Here is an example of how it operates:
+
+[% example("make-date") %]
 
 To replace the default routine C<make_date> with a different format,
 supply a C<make_date> callback to L<subsjdate>:
 
-  sub my_date
-  {
-    my ($data, $original, $date) = @_;
-    return join '/', $date->{month}."/".$date->{date};
-  }
-  my $dates = '三月１６日';
-  print subsjdate ($dates, {make_date => \&my_date});
+[% example("my-date") %]
 
-This prints
+Note that, depending on what dates are in your document, some of the
+hash values may not be available, so the user routine needs to handle
+the cases when the year or the month or the day of the month are
+missing.
 
-  3/16
+=head2 default_make_date_interval
 
-=head2 make_date_interval
-
-   make_date_interval (
-   {
-   # 19 February 2010
-       year => 2010,
-       month => 2,
-       date => 19,
-   },
-   # Monday 19th March 2012.
-   {
-       year => 2012,
-       month => 3,
-       date => 19,
-       wday => 1,
-   },);
+[% example("default-make-date-interval") %]
 
 This function is called when an interval of two dates, such as 平成３年
 ７月２日〜９日, is detected. It makes a string to represent that
 interval in English. It takes two arguments, hash references to the
 first and second date. The hash references are in the same format as
-L</make_date>.
+L</default_make_date>.
 
 This function is not exported. It is the default used by
 L</subsjdate>. You can use another function instead of this default by
@@ -350,6 +288,12 @@ number 56902
 (L<http://rt.perl.org/rt3/Public/Bug/Display.html?id=56902>). But
 sending this routine a string which is pure ASCII doesn't make sense
 anyway, so don't worry too much about it.
+
+=item Does not do every possible interval
+
+This module doesn't cover some kinds of intervals such as from one
+year to another year. Please send me examples if you find something
+which it needs to match.
 
 =back
 

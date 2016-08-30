@@ -11,8 +11,13 @@ binmode $builder->failure_output, ":utf8";
 binmode $builder->todo_output,    ":utf8";
 
 use Lingua::JA::FindDates qw/subsjdate/;
-
-ok (Lingua::JA::FindDates::kanji2number ('3百三十五') == 0, 'bad kanji number failure test');
+#$Lingua::JA::FindDates::verbose =1;
+my $warning;
+{
+    local $SIG{__WARN__} = sub { $warning = "@_"; };
+    ok (Lingua::JA::FindDates::kanji2number ('3百三十五') == 0, 'bad kanji number failure test');
+    like ($warning, qr/can't cope with '3' of input '3百三十五'/);
+};
 ok (Lingua::JA::FindDates::kanji2number ('二百三十五') == 235, 'kanji number');
 ok (Lingua::JA::FindDates::kanji2number ('二三五') == 235, 'kanji number');
 ok (Lingua::JA::FindDates::kanji2number ('二三五五') == 2355, 'kanji number');
@@ -139,6 +144,7 @@ ok (subsjdate($has_newline) !~ 'Sunday', 'do not match next kanji if it\'s not a
 ok (subsjdate('平成元年') eq '1989', 'gannen dates');
 
 ok (subsjdate('三月一日（木）〜３日（土）') eq 'Thursday 1-Saturday 3 March','interval with month, (day, weekday) x 2)');
+go:
 ok (subsjdate('2008年7月一日（木）〜八月３日（土)') eq 'Thursday 1 July-Saturday 3 August, 2008', 'interval with year, 2 x (month, day, weekday)');
 ok (subsjdate('2008年7月一日（木）〜３日（土)') eq 'Thursday 1-Saturday 3 July, 2008', 'interval with year, 2 x (month, day, weekday)');
 ok (subsjdate ('平成９年１０月１７日（火）〜２０日（金）') eq 'Tuesday 17-Friday 20 October, 1997');
@@ -171,6 +177,14 @@ like (subsjdate ($tbs),
       qr/October 4, 1974/,
       "Do not convert romaji strings using the S-digit rule");
 
+#my $doubletrouble = 
+#'昭和３４年１月１７日（土）〜平成9年12月20日（土）';
+my $doubletrouble = 
+'昭和３４年１月１７日〜平成9年12月20日';
+
+#note (subsjdate ($doubletrouble));
+like (subsjdate ($doubletrouble), qr/January 17, 1959-December 20, 1997/);
+
 my $meiji = '明治36年';
 is (subsjdate ($meiji), 1903, "Meiji conversion");
 
@@ -185,6 +199,26 @@ my @years = (1989, 1926, 1912, 1868);
 for my $i (0..$#squares) {
     is (subsjdate ($squares[$i]), $years[$i], "square years");
 }
+
+# Different years.
+
+my $twoyears = Lingua::JA::FindDates::default_make_date_interval (
+    {
+        # 19 February 2010
+        year => 2010,
+        month => 2,
+        date => 19,
+        wday => 5,
+    },
+    # Monday 19th March 2012.
+    {
+        year => 2012,
+        month => 3,
+        date => 19,
+        wday => 1,
+    },);
+
+is ($twoyears, 'Friday 19 February, 2010-Monday 19 March, 2012');
 
 TODO: {
     local $TODO = 'bugs';
