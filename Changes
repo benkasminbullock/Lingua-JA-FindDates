@@ -1,3 +1,8 @@
+0.022 2016-08-30
+
+* Intervals between two era dates
+* Change to machine-readable examples, better documentation
+
 0.021 2016-08-29
 
 * Add dates with a single kanji, like 明19.
