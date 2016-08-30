@@ -9,3 +9,4 @@ blib/.*
 .*\.bak
 MYMETA\.(json|yml)
 testing/.*
+^examples/.*-out\.txt$

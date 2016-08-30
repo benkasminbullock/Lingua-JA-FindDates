@@ -65,15 +65,14 @@ a bug.
 Translate Japanese dates into American dates. The first argument to
 C<subsjdate> is a string like "平成２０年７月３日（木）". The routine
 looks through the string to see if there is anything which appears to
-be a Japanese date. If it finds one, it makes
-the equivalent date in English (American-style), and then substitutes
+be a Japanese date. If it finds one, it makes the equivalent date in
+English (American-style, with the month first), and then substitutes
 it into C<$text>, as if performing the following type of operation:
 
     $text =~ s/平成２０年７月３日（木）/Thursday, July 3, 2008/g;
 
 If the text contains the interval between two dates, C<subsjdate>
-attempts to convert that into an English-language interval. This does
-not match every possible interval between dates. See L</BUGS>.
+attempts to convert that into an English-language interval.
 
 Users can supply a different date-making function using the second
 argument. 
@@ -92,10 +91,12 @@ following members:
     # Now "my_replace" is called as
     # my_replace ($my_data, $before, $after);
 
-If there is a replace value in the callbacks, subsjdate calls it as a
-subroutine with the data in C<< $callbacks->{data} >> and the before and
-after string, in other words the matched date and the string with
+If a code reference is supplied as C<replace>, subsjdate calls it as a
+subroutine with the data in C<< $callbacks->{data} >> and the before
+and after string, in other words each matched date and the string with
 which it is to be replaced.
+
+If C<replace> is not supplied, subsjdate substitutes the dates itself.
 
 =item data
 
@@ -170,7 +171,7 @@ Western-style dates. The "nengo" dates go back to the Meiji period
 This section discusses the default subroutines which are called as
 dates are found to convert the Japanese dates into another string
 format. These callbacks are not exported. In versions of this module
-prior to 0.22, these functions were called C<make_date> and
+prior to 0.022, these functions were called C<make_date> and
 C<make_date_interval> respectively. The previous names still work.
 
 =head2 default_make_date
@@ -288,12 +289,6 @@ number 56902
 (L<http://rt.perl.org/rt3/Public/Bug/Display.html?id=56902>). But
 sending this routine a string which is pure ASCII doesn't make sense
 anyway, so don't worry too much about it.
-
-=item Does not do every possible interval
-
-This module doesn't cover some kinds of intervals such as from one
-year to another year. Please send me examples if you find something
-which it needs to match.
 
 =back
 
