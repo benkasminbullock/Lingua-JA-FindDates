@@ -9,8 +9,11 @@ binmode $builder->failure_output, ":utf8";
 binmode $builder->todo_output,    ":utf8";
 binmode STDOUT, ":encoding(utf8)";
 binmode STDERR, ":encoding(utf8)";
-use Perl::Build::Pod qw/pod_checker pod_link_checker/;
-my $filepath = "$Bin/../lib/Lingua/JA/FindDates.pod";
+use Perl::Build 'get_info';
+use Perl::Build::Pod qw/pod_checker pod_link_checker pod_exports pod_no_cut/;
+my $base = "$Bin/..";
+my $info = get_info (base => $base);
+my $filepath = "$base/$info->{pod}";
 my $errors = pod_checker ($filepath);
 ok (@$errors == 0, "No errors");
 my $linkerrors = pod_link_checker ($filepath);
@@ -20,4 +23,7 @@ if (@$linkerrors > 0) {
 	print "$_\n";
     }
 }
+ok (pod_exports ($info->{pod}, $info->{colon}), "exports documented OK");
+ok (pod_no_cut ($filepath), "no =cut in $filepath");
+
 done_testing ();

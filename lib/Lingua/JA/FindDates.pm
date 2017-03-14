@@ -1,17 +1,16 @@
 package Lingua::JA::FindDates;
+use warnings;
+use strict;
 
 use 5.010000;
 require Exporter;
-use AutoLoader qw(AUTOLOAD);
 our @ISA = qw(Exporter);
-@EXPORT_OK= qw/subsjdate kanji2number seireki_to_nengo nengo_to_seireki
-	       regjnums/;
-%EXPORT_TAGS = (
+our @EXPORT_OK= qw/subsjdate kanji2number seireki_to_nengo nengo_to_seireki
+		   regjnums/;
+our %EXPORT_TAGS = (
     all => \@EXPORT_OK,
 );
-our $VERSION = '0.023';
-use warnings;
-use strict;
+our $VERSION = '0.024';
 use Carp qw/carp croak cluck/;
 use utf8;
 
@@ -1085,7 +1084,7 @@ sub seireki_to_nengo_make_date
 sub regjnums
 {
     my ($input) = @_;
-    $input =~ s/([０-９])/$wtonarrow{$1}/g;
+    $input =~ tr/０-９/0-9/;
     $input =~ s/([$kanjidigits]+)/kanji2number($1)/ge;
     return $input;
 }

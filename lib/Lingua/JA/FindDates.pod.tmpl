@@ -8,7 +8,7 @@ produces output
 
 [% INCLUDE $out | xtidy %]
 
-(This example is included as L<F<[% pl %]>|https://api.metacpan.org/source/BKB/Lingua-JA-FindDates-[% version %]/examples/[% pl %]> in the distribution.)
+(This example is included as L<F<[% pl %]>|https://api.metacpan.org/source/BKB/Lingua-JA-FindDates-[% info.version %]/examples/[% pl %]> in the distribution.)
 [% END %]
 =encoding UTF-8
 
@@ -22,13 +22,15 @@ Lingua::JA::FindDates - scan text to find dates in a Japanese format
 
 =head1 VERSION
 
-This documents version [% version %] of Lingua::JA::FindDates corresponding to git
-commit [% commit.commit %] released on [% commit.date %].
+This documents [% info.colon %] version [% info.version %]
+corresponding to git commit L<[% commit.commit %]|[% info.repo
+%]/commit/[% commit.commit %]> released on [% commit.date %].
 
 =head1 DESCRIPTION
 
-This module's main routine, L</subsjdate>, scans a text and finds
-things which appear to be Japanese dates.
+This is an aid for translating documents in Japanese. This module's
+main routine, L</subsjdate>, scans a text and finds things which
+appear to be Japanese dates.
 
 The module recognizes a variety of date formats. It recognizes the
 typical format of dates with the year first, followed by the month,
@@ -169,6 +171,16 @@ This function substitutes Japanese-style "nengo" dates (年号) with
 Western-style dates. The "nengo" dates go back to the Meiji period
 (1868). See L</BUGS>.
 
+=head2 regjnums
+
+    my $number = regjnums ($number);
+
+This is a simplistic number regularizer which utilizes
+L</kanji2number> to convert kanji digits or wide ascii numerals into
+Arabic numeral equivalents. Like L</kanji2number>, it can only cope
+with kanji numbers up to 9,999. Please see L</Lingua::JA::Numbers> for
+a fuller system.
+
 =head1 DEFAULT CALLBACKS
 
 This section discusses the default subroutines which are called as
@@ -275,8 +287,9 @@ For those supplying their own callback routines, note that the dates
 returned won't be in the order that they are in the text, but in the
 order that they are found by the regular expressions, which means that
 in a string with two dates, the callbacks might be called for the
-second date before they are called for the first one. Basically the
-longer forms of dates are searched for before the shorter ones.
+second date before they are called for the first one. Dates which
+contain more information, such as a month, day and year, are searched
+for before shorter ones, such as a year only or a month and day only.
 
 =item UTF-8 version only
 
@@ -295,15 +308,17 @@ anyway, so don't worry too much about it.
 
 =back
 
-=cut
-
 =head1 EXPORTS
 
-This module exports one function, L</subsjdate>, on request.
+This module exports L</subsjdate>, L</kanji2number>,
+L</seireki_to_nengo>, L</nengo_to_seireki> and L</regjnums> on
+request. All the functions can be exported using the tag C<:all> as in
 
-=cut
+    use Lingua::JA::FindDates ':all';
 
 =head1 SEE ALSO
+
+=head2 Other modules
 
 =over
 
@@ -321,12 +336,21 @@ date, and it also does times.
 =item L<Lingua::JA::Numbers>
 
 Kanji / numeral convertors. It converts numbers including decimal
-points and numbers into the billions and trillions.
+points, and numbers into the billions and trillions.
 
 =item L<DateTime::Calendar::Japanese::Era>
 
 A full set of Japanese eras.
 
+=item L<Lingua::JA::Moji>
+
+Japanese character transliterations, including wide ascii numerals.
+
 =back
+
+=head2 Online date converter
+
+An online date converter which uses this module may be found at
+L<https://www.lemoda.net/japanese/findjdates/index.cgi>.
 
 [% INCLUDE "author" %]

@@ -3,7 +3,7 @@ use warnings;
 use strict;
 use Template;
 use FindBin '$Bin';
-use Perl::Build qw/get_version get_commit/;
+use Perl::Build qw/get_commit get_info/;
 use Perl::Build::Pod ':all';
 use Deploy qw/do_system older/;
 use Getopt::Long;
@@ -16,8 +16,8 @@ if (! $ok) {
     exit;
 }
 my %pbv = (base => $Bin, verbose => $verbose);
-my $version = get_version (%pbv);
 my $commit = get_commit (%pbv);
+my $info = get_info (%pbv);
 # Names of the input and output files containing the documentation.
 
 my $pod = 'FindDates.pod';
@@ -27,8 +27,8 @@ my $output = "$Bin/lib/Lingua/JA/$pod";
 # Template toolkit variable holder
 
 my %vars = (
-    version => $version,
     commit => $commit,
+    info => $info,
 );
 
 my $tt = Template->new (

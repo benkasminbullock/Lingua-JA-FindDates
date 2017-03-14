@@ -9,3 +9,5 @@ Makefile
 MANIFEST
 
 lib/Lingua/JA/FindDates.pod
+
+README

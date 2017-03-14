@@ -4,6 +4,12 @@ use strict;
 use Test::More;
 use Lingua::JA::FindDates 'nengo_to_seireki';
 use utf8;
+my $builder = Test::More->builder;
+binmode $builder->output,         ":utf8";
+binmode $builder->failure_output, ":utf8";
+binmode $builder->todo_output,    ":utf8";
+binmode STDOUT, ":encoding(utf8)";
+binmode STDERR, ":encoding(utf8)";
 my $in = <<EOF;
 1989年1月1日
 1989年10月10日
