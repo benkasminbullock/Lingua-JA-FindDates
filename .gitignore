@@ -1,13 +1,6 @@
-# Old distribution files.
-
-dists
-
 # Generated from Makefile.PL.
-
 Makefile
-
 MANIFEST
-
 lib/Lingua/JA/FindDates.pod
-
 README
+Lingua-JA-FindDates-[0-9]*

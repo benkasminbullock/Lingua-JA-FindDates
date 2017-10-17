@@ -8,7 +8,7 @@ produces output
 
 [% INCLUDE $out | xtidy %]
 
-(This example is included as L<F<[% pl %]>|https://api.metacpan.org/source/BKB/Lingua-JA-FindDates-[% info.version %]/examples/[% pl %]> in the distribution.)
+(This example is included as L<F<[% pl %]>|https://fastapi.metacpan.org/source/BKB/Lingua-JA-FindDates-[% info.version %]/examples/[% pl %]> in the distribution.)
 [% END %]
 =encoding UTF-8
 
@@ -76,7 +76,6 @@ following type of operation:
 If the text contains the interval between two dates, C<subsjdate>
 attempts to convert that into an English-language interval.
 
-
 The default dates are American-style, with the month first. Users can
 supply a different date-making function using the second argument:
 
@@ -111,7 +110,7 @@ supplied, C<subsjdate> simply passes the undefined value.
 
 This is a replacement for the default L</default_make_date>
 function. The default function turns "平成10年11月12日" into "November
-12, 1998". To change this to dates in the form "Th 2008/7/3", use a
+12, 1998". To change this to dates in the form "Th 1998/11/10", use a
 routine like the following:
 
 [% example("subsjdate-make-date") %]
@@ -160,16 +159,16 @@ L<Lingua::JA::Numbers>.
 [% example("seireki-to-nengo") %]
 
 This function substitutes Western-style dates with Japanese-style
-"nengo" dates (年号). The "nengo" dates go back to the Meiji period
-(1868). See L</BUGS>.
+"nengo" dates (年号), leaving the rest of the text unchanged. The
+"nengo" dates go back to the Meiji period (1868). See L</BUGS>.
 
 =head2 nengo_to_seireki
 
 [% example("nengo-to-seireki") %]
 
 This function substitutes Japanese-style "nengo" dates (年号) with
-Western-style dates. The "nengo" dates go back to the Meiji period
-(1868). See L</BUGS>.
+Western-style dates, leaving the rest of the text unchanged. The
+"nengo" dates go back to the Meiji period (1868). See L</BUGS>.
 
 =head2 regjnums
 
@@ -192,19 +191,19 @@ C<make_date_interval> respectively. The previous names still work.
 =head2 default_make_date
 
 L</subsjdate>, given a date like 平成２０年７月３日（木） (Heisei year
-20, month 7, day 3, in other words "Thursday the third of July,
-2008"), passes C<make_date> a hash reference with values C<< year =>
-2008, month => 7, date => 3, wday => 4 >> for the year, month, date
-and day of the week. C<make_date> turns the date information supplied
-to it into a string representing the date. C<make_date> is not
+20, month 7, day 3 (Th), "Thursday 3rd July, 2008"), passes
+C<make_date> a hash reference with values C<< year => 2008, month =>
+7, date => 3, wday => 4 >> for the year, month, date and day of the
+week. C<default_make_date> turns the date information supplied to it
+into a string representing the date. C<default_make_date> is not
 exported.
 
 Here is an example of how it operates:
 
 [% example("make-date") %]
 
-To replace the default routine C<make_date> with a different format,
-supply a C<make_date> callback to L</subsjdate>:
+To replace the default routine C<default_make_date> with a different
+format, supply a C<make_date> callback to L</subsjdate>:
 
 [% example("my-date") %]
 
@@ -352,5 +351,86 @@ Japanese character transliterations, including wide ascii numerals.
 
 An online date converter which uses this module may be found at
 L<https://www.lemoda.net/japanese/findjdates/index.cgi>.
+
+=head1 DEPENDENCIES
+
+L<Carp> is used to report errors. This module has no dependencies on
+non-core modules.
+
+=head1 VARIABLES
+
+=head2 @jdatere
+
+The Japanese date regular expressions are stored in an array
+C<@jdatere> containing a pair of a regular expression to match a kind
+of date, and a string like "ymdw" which contains letters saying what
+to do with captured subexpressions.
+
+The array is ordered from the regular expression with the longest
+match (like "year / month / day / weekday") to the shortest (like
+"year" only).
+
+The string explains what to do with the captured elements like $1, $2,
+etc. from the regular expression. For example, if the first letter is
+"y", then $1 is a year in Western format like 2008, or if the third
+letter is "w", then $3 is the day of the week, from 1 to 7. The
+following elements exist:
+
+=over
+
+=item e
+
+Japanese era (string).
+
+=item j
+
+Japanese year (string representing small number)
+
+=item x
+
+Empty month and day
+
+=item m
+
+The month number (from 1 to 12, 13 for a blank month, 0 for an invalid
+month)
+
+=item d
+
+The day of month (from 1 to 31, 32 for a blank day, 0 for an invalid day)
+
+=item w
+
+A weekday (from Monday = 1 to Sunday = 7, zero or undefined for an
+invalid weekday)
+
+=item z
+
+A I<jun> (旬), a period of one third of a month, or ten days.
+
+=item B<1>
+
+After another code, indicates the first of a pair of two things. For
+example, the matching code for
+
+    平成９年１０月１７日〜２０日
+
+is
+
+    ejmd1d2
+
+=back
+
+=head2 $verbose
+
+If you want to see what the module is doing, set
+
+  $Lingua::JA::FindDates::verbose = 1;
+
+This makes L</subsjdate> print out each regular expression and reports
+whether it matched, which looks like this:
+
+  Looking for y in ([０-９0-9]{4}|[十六七九五四千百二一八三]?千[十六七九五四千百二一八三]*)\h*年
+  Found '千九百六十六年': Arg 0: 1966 -> '1966'
 
 [% INCLUDE "author" %]
