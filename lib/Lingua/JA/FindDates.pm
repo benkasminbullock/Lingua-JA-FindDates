@@ -8,12 +8,12 @@ use 5.010000;
 require Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT_OK= qw/subsjdate kanji2number seireki_to_nengo nengo_to_seireki
-		   regjnums @jdatere/;
+		   regjnums @jdatere $jera %jera2w/;
 our %EXPORT_TAGS = (
     all => \@EXPORT_OK,
 );
 
-our $VERSION = '0.027';
+our $VERSION = '0.028';
 
 # Kanji number conversion table.
 
@@ -116,18 +116,18 @@ my $alpha_era = qr/
                       (?:
                           [H|Ｈ|S|Ｓ|T|Ｔ|M|Ｍ]
                       )
-                  /x;
+                  /xi;
 
 # The recent era names (Heisei, Showa, Taisho, Meiji). These eras are
 # sometimes written using the letters H, S, T, and M.
 
-my $jera = qr/($alpha_era|平|昭|大|明|平成|昭和|大正|明治|㍻|㍼|㍽|㍾)/;
+our $jera = qr/($alpha_era|平|昭|大|明|平成|昭和|大正|明治|㍻|㍼|㍽|㍾)/;
 
 # A map of Japanese eras to Western dates. These are the starting year
 # of the period minus one, to allow for that the first year is "heisei
 # one" rather than "heisei zero".
 
-my %jera2w = (
+our %jera2w = (
     H    => 1988,
     Ｈ   => 1988,
     平成 => 1988,
