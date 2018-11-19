@@ -20,6 +20,12 @@ Lingua::JA::FindDates - scan text to find dates in a Japanese format
 
 [% example("synopsis") %]
 
+[% example("synopsis-replace") %]
+
+[% example("synopsis-make-date") %]
+
+[% example("synopsis-nengo") %]
+
 =head1 VERSION
 
 This documents [% info.colon %] version [% info.version %]
@@ -271,8 +277,7 @@ Please also note the following:
 
 It does not detect that dates like 昭和99年 (Showa 99, an impossible
 year, since Showa 63 (1988) was succeeded by Heisei 1 (1989)) are
-invalid. It does, however, only allow two digits for these named-era
-dates.
+invalid.
 
 =item Only goes back to Meiji
 
@@ -406,6 +411,10 @@ invalid weekday)
 =item z
 
 A I<jun> (旬), a period of one third of a month, or ten days.
+
+=item x
+
+This indicates a date like a "fill in the blanks" date on a form.
 
 =item B<1>
 
