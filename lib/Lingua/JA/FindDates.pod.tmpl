@@ -82,8 +82,8 @@ supply a different date-making function using the second argument:
     my $translation = subsjdate ($text, {make_date => \&mymakedate,
                                  make_date_interval => \&myinterval});
 
-The second argument is a hash reference which may have the
-following members:
+The second argument is a hash reference containing callbacks. It may
+have the following members:
 
 =over
 
